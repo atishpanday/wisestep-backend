@@ -1,0 +1,165 @@
+package com.example.wisestepBackend.service;
+
+import com.example.wisestepBackend.dao.AuthenticationDao;
+import com.example.wisestepBackend.model.EmailConfig;
+import com.example.wisestepBackend.model.User;
+import com.example.wisestepBackend.utils.RandomString;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mail.MailSendException;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
+import org.springframework.stereotype.Service;
+
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.util.Calendar;
+import java.util.Random;
+
+@Service
+public class AuthenticationService {
+
+    @Autowired
+    JavaMailSender javaMailSender;
+
+    @Autowired
+    AuthenticationDao authenticationDao;
+
+    EmailConfig emailConfig;
+
+    RandomString randomString;
+
+    Logger logger = LoggerFactory.getLogger(AuthenticationService.class);
+
+    public AuthenticationService(EmailConfig emailConfig){
+        this.emailConfig = emailConfig;
+    }
+
+    // code for getting the email id of the user and sending to the database
+    public Boolean getEmail(User user) {
+
+        Random random = new Random();
+        user.setCode(String.format("%04d", random.nextInt(10000)));
+        user.setSession_id(randomString.generateRandomString());
+
+
+        User savedUser = authenticationDao.getEmail(user);
+
+        if (savedUser == null) {
+            try{
+                if(authenticationDao.addEmail(user)) return sendEmailToUser(user);
+                else return false;
+            } catch(MailSendException e) {
+                return false;
+            }
+        } else if (!savedUser.getIs_logged_in()) {
+            try{
+                if(authenticationDao.updateEmail(user)) return sendEmailToUser(user);
+                else return false;
+            } catch(MailSendException e) {
+                return false;
+            }
+        } else {
+            return false;
+        }
+
+    }
+
+    private Boolean sendEmailToUser(User user){
+        JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
+        mailSender.setHost(this.emailConfig.getHost());
+        mailSender.setPort(this.emailConfig.getPort());
+        mailSender.setUsername(this.emailConfig.getUsername());
+        mailSender.setPassword(this.emailConfig.getPassword());
+
+        SimpleMailMessage msg = new SimpleMailMessage();
+        msg.setFrom("${spring.mail.username}");
+        msg.setTo(user.getEmail());
+        msg.setSubject("Your login request code");
+        msg.setText("Your login code is: " + user.getCode());
+
+        javaMailSender.send(msg);
+
+        return true;
+    }
+
+    public Boolean getCode(User user) {
+        User savedUser = authenticationDao.getCode(user);
+        return verifyCode(savedUser, user);
+    }
+
+    private Boolean verifyCode(User savedUser, User user){
+        // define the time of saving the code and add 15 minutes
+        Timestamp timeOfSavingCode = Timestamp.valueOf(savedUser.getCreated_time());
+
+        Calendar cal = Calendar.getInstance();
+        cal.setTimeInMillis(timeOfSavingCode.getTime());
+
+        cal.add(Calendar.MINUTE, 15);
+
+        Timestamp thresholdTime = new Timestamp(cal.getTime().getTime());
+
+        logger.info(String.valueOf(thresholdTime));
+
+        // define the time of verifying the code sent by the user
+        Timestamp timeOfVerifyingCode = Timestamp.from(Instant.now());
+
+        // check if the codes match and check if the time of verifying the code is not later than 15 minutes after the code was stored in the database
+        return user.getCode().equals(user.getCode()) && timeOfVerifyingCode.before(thresholdTime);
+    }
+
+    public Boolean logoutDuplicateSession(User user) {
+        user.setSession_id(randomString.generateRandomString());
+        return authenticationDao.logoutDuplicateSession(user);
+    }
+
+    public Boolean authenticate(User user) {
+        return authenticationDao.authenticate(user).equals(user.getSession_id());
+    }
+
+    public Boolean logout(User user) {
+        return authenticationDao.logout(user);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

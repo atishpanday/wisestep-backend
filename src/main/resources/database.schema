@@ -1,0 +1,10 @@
+create database wisestep;
+
+create table user(
+id int primary key not null auto_increment,
+email varchar(50) unique not null,
+code varchar(6) not null,
+is_logged_in bool default 0,
+session_id varchar(100) not null,
+created_time timestamp default current_timestamp
+);
