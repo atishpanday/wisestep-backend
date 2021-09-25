@@ -1,7 +1,10 @@
 package com.example.wisestepBackend.utils;
 
+import org.springframework.stereotype.Component;
+
 import java.util.Random;
 
+@Component
 public class RandomString {
     public String generateRandomString() {
         int leftLimit = 48; // numeral '0'

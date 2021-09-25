@@ -29,9 +29,10 @@ public class AuthenticationController {
     }
 
     @PostMapping("get-code")
-    public ResponseEntity<String> getCode(@RequestBody User user) {
-        if(authenticationService.getCode(user)) return new ResponseEntity<String>("Success", new HttpHeaders(), HttpStatus.OK);
-        else return new ResponseEntity<String>("Failed", new HttpHeaders(), HttpStatus.FORBIDDEN);
+    public ResponseEntity<User> getCode(@RequestBody User user) {
+        User savedUser = authenticationService.getCode(user);
+        if(savedUser != null) return new ResponseEntity<User>(savedUser, new HttpHeaders(), HttpStatus.OK);
+        else return new ResponseEntity<User>(null, new HttpHeaders(), HttpStatus.FORBIDDEN);
     }
 
     @PostMapping("logout-duplicate-session")

@@ -27,8 +27,10 @@ public class AuthenticationService {
     @Autowired
     AuthenticationDao authenticationDao;
 
+    @Autowired
     EmailConfig emailConfig;
 
+    @Autowired
     RandomString randomString;
 
     Logger logger = LoggerFactory.getLogger(AuthenticationService.class);
@@ -85,9 +87,16 @@ public class AuthenticationService {
         return true;
     }
 
-    public Boolean getCode(User user) {
+    public User getCode(User user) {
         User savedUser = authenticationDao.getCode(user);
-        return verifyCode(savedUser, user);
+        if(verifyCode(savedUser, user)) {
+            authenticationDao.updateEmail(savedUser);
+            savedUser.setIs_logged_in(true);
+            return savedUser;
+        } else {
+            authenticationDao.logout(user);
+            return null;
+        }
     }
 
     private Boolean verifyCode(User savedUser, User user){
@@ -107,7 +116,7 @@ public class AuthenticationService {
         Timestamp timeOfVerifyingCode = Timestamp.from(Instant.now());
 
         // check if the codes match and check if the time of verifying the code is not later than 15 minutes after the code was stored in the database
-        return user.getCode().equals(user.getCode()) && timeOfVerifyingCode.before(thresholdTime);
+        return user.getCode().equals(savedUser.getCode()) && timeOfVerifyingCode.before(thresholdTime);
     }
 
     public Boolean logoutDuplicateSession(User user) {

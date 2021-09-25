@@ -20,7 +20,7 @@ public class AuthenticationDao {
         String qryToCheckUser = "SELECT email, code, is_logged_in, created_time, session_id FROM user WHERE email=?";
         try {
             User savedUser = jdbcTemplate.queryForObject(qryToCheckUser, new Object[]{user.getEmail()}, new UserRowMapper());
-            return user;
+            return savedUser;
         } catch (EmptyResultDataAccessException e) {
             return null;
         }
@@ -48,7 +48,7 @@ public class AuthenticationDao {
     }
 
     public Boolean updateEmail(User user) {
-        String qryToUpdateEmail = "UPDATE user SET code=?, session_id=?, created_time=CURRENT_TIMESTAMP WHERE email=?";
+        String qryToUpdateEmail = "UPDATE user SET code=?, is_logged_in=1, session_id=?, created_time=CURRENT_TIMESTAMP WHERE email=?";
         int qryResult = jdbcTemplate.update(qryToUpdateEmail, user.getCode(), user.getSession_id(), user.getEmail());
         return qryResult == 1;
     }
