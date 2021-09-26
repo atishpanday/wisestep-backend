@@ -1,5 +1,6 @@
 package com.example.wisestepBackend.controller;
 
+import com.example.wisestepBackend.model.ResponseMessage;
 import com.example.wisestepBackend.model.User;
 import com.example.wisestepBackend.service.AuthenticationService;
 import org.slf4j.Logger;
@@ -20,46 +21,47 @@ public class AuthenticationController {
 
     // get the email id of the user
     @PostMapping("get-email")
-    public ResponseEntity<String> getEmail(@RequestBody User user) {
+    public ResponseEntity<ResponseMessage> getEmail(@RequestBody User user) {
         logger.info(user.getEmail());
         String result = authenticationService.getEmail(user);
         if (result.equals("CREATED") || result.equals("UPDATED")) {
-            return new ResponseEntity<String>("CREATED", new HttpHeaders(), HttpStatus.OK);
+            return new ResponseEntity<>(new ResponseMessage("CREATED"), new HttpHeaders(), HttpStatus.OK);
         } else if (result.equals("DATABASE_ERROR")) {
-            return new ResponseEntity<String>("DATABASE_ERROR", new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new ResponseMessage("DATABASE_ERROR"), new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR);
         } else if (result.equals("INVALID_EMAIL")) {
-            return new ResponseEntity<String>("INVALID_EMAIL", new HttpHeaders(), HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(new ResponseMessage("INVALID_EMAIL"), new HttpHeaders(), HttpStatus.NOT_FOUND);
         } else {
-            return new ResponseEntity<String>("DUPLICATE_USER", new HttpHeaders(), HttpStatus.CONFLICT);
+            return new ResponseEntity<>(new ResponseMessage("DUPLICATE_USER"), new HttpHeaders(), HttpStatus.CONFLICT);
         }
     }
 
     @PostMapping("get-code")
     public ResponseEntity<User> getCode(@RequestBody User user) {
         User savedUser = authenticationService.getCode(user);
-        if (savedUser != null) return new ResponseEntity<User>(savedUser, new HttpHeaders(), HttpStatus.OK);
-        else return new ResponseEntity<User>(null, new HttpHeaders(), HttpStatus.FORBIDDEN);
+        if (savedUser != null) return new ResponseEntity<>(savedUser, new HttpHeaders(), HttpStatus.OK);
+        else return new ResponseEntity<>(null, new HttpHeaders(), HttpStatus.FORBIDDEN);
     }
 
     @PutMapping("logout-duplicate-session")
-    public ResponseEntity<String> logoutDuplicateSession(@RequestBody User user) {
+    public ResponseEntity<ResponseMessage> logoutDuplicateSession(@RequestBody User user) {
         if (authenticationService.logoutDuplicateSession(user))
-            return new ResponseEntity<String>("Success", new HttpHeaders(), HttpStatus.OK);
-        else return new ResponseEntity<String>("Failed", new HttpHeaders(), HttpStatus.FORBIDDEN);
+            return new ResponseEntity<>(new ResponseMessage("Success"), new HttpHeaders(), HttpStatus.OK);
+        else return new ResponseEntity<>(new ResponseMessage("Failed"), new HttpHeaders(), HttpStatus.FORBIDDEN);
     }
 
     @PostMapping("authenticate")
-    public ResponseEntity<String> authenticate(@RequestBody User user) {
+    public ResponseEntity<ResponseMessage> authenticate(@RequestBody User user) {
+        logger.info(user.getSession_id());
         if (authenticationService.authenticate(user))
-            return new ResponseEntity<>("Success", new HttpHeaders(), HttpStatus.OK);
-        else return new ResponseEntity<String>("Failed", new HttpHeaders(), HttpStatus.FORBIDDEN);
+            return new ResponseEntity<>(new ResponseMessage("Success"), new HttpHeaders(), HttpStatus.OK);
+        else return new ResponseEntity<>(new ResponseMessage("Failed"), new HttpHeaders(), HttpStatus.FORBIDDEN);
     }
 
     @PutMapping("logout")
-    public ResponseEntity<String> logout(@RequestBody User user) {
+    public ResponseEntity<ResponseMessage> logout(@RequestBody User user) {
         if (authenticationService.logout(user))
-            return new ResponseEntity<>("Success", new HttpHeaders(), HttpStatus.OK);
-        else return new ResponseEntity<String>("Failed", new HttpHeaders(), HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(new ResponseMessage("Success"), new HttpHeaders(), HttpStatus.OK);
+        else return new ResponseEntity<>(new ResponseMessage("Failed"), new HttpHeaders(), HttpStatus.NOT_FOUND);
     }
 
 }
