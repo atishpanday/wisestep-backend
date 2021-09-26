@@ -40,7 +40,7 @@ public class AuthenticationService {
     }
 
     // code for getting the email id of the user and sending to the database
-    public Boolean getEmail(User user) {
+    public String getEmail(User user) {
 
         Random random = new Random();
         user.setCode(String.format("%04d", random.nextInt(10000)));
@@ -48,23 +48,31 @@ public class AuthenticationService {
 
 
         User savedUser = authenticationDao.getEmail(user);
+        // set the user to be not logged in yet, until the code is verified
+        user.setIs_logged_in(false);
 
         if (savedUser == null) {
             try{
-                if(authenticationDao.addEmail(user)) return sendEmailToUser(user);
-                else return false;
+                if(authenticationDao.addEmail(user)) {
+                    sendEmailToUser(user);
+                    return "CREATED";
+                }
+                else return "DATABASE_ERROR";
             } catch(MailSendException e) {
-                return false;
+                return "INVALID_EMAIL";
             }
         } else if (!savedUser.getIs_logged_in()) {
             try{
-                if(authenticationDao.updateEmail(user)) return sendEmailToUser(user);
-                else return false;
+                if(authenticationDao.updateEmail(user)) {
+                    sendEmailToUser(user);
+                    return "UPDATED";
+                }
+                else return "DATABASE_ERROR";
             } catch(MailSendException e) {
-                return false;
+                return "INVALID_EMAIL";
             }
         } else {
-            return false;
+            return "DUPLICATE_USER";
         }
 
     }
@@ -90,6 +98,8 @@ public class AuthenticationService {
     public User getCode(User user) {
         User savedUser = authenticationDao.getCode(user);
         if(verifyCode(savedUser, user)) {
+            // set the user to be logged in after the code is verified
+            savedUser.setIs_logged_in(true);
             authenticationDao.updateEmail(savedUser);
             savedUser.setIs_logged_in(true);
             return savedUser;

@@ -40,16 +40,16 @@ public class AuthenticationDao {
     }
 
     public Boolean addEmail(User user) {
-        String qryToAddEmail = "INSERT INTO user (email, code, session_id) VALUES (?, ?, ?)";
+        String qryToAddEmail = "INSERT INTO user (email, code, is_logged_in, session_id) VALUES (?, ?, ?, ?)";
 
-        int qryResult = jdbcTemplate.update(qryToAddEmail, user.getEmail(), user.getCode(), user.getSession_id());
+        int qryResult = jdbcTemplate.update(qryToAddEmail, user.getEmail(), user.getCode(), user.getIs_logged_in(), user.getSession_id());
 
         return qryResult == 1;
     }
 
     public Boolean updateEmail(User user) {
-        String qryToUpdateEmail = "UPDATE user SET code=?, is_logged_in=1, session_id=?, created_time=CURRENT_TIMESTAMP WHERE email=?";
-        int qryResult = jdbcTemplate.update(qryToUpdateEmail, user.getCode(), user.getSession_id(), user.getEmail());
+        String qryToUpdateEmail = "UPDATE user SET code=?, is_logged_in=?, session_id=?, created_time=CURRENT_TIMESTAMP WHERE email=?";
+        int qryResult = jdbcTemplate.update(qryToUpdateEmail, user.getCode(), user.getIs_logged_in(), user.getSession_id(), user.getEmail());
         return qryResult == 1;
     }
 
