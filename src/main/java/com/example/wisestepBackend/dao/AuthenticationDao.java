@@ -40,7 +40,7 @@ public class AuthenticationDao {
     }
 
     public Boolean addEmail(User user) {
-        String qryToAddEmail = "INSERT INTO user (email, code, is_logged_in, session_id) VALUES (?, ?, ?, ?)";
+        String qryToAddEmail = "INSERT INTO users (email, code, is_logged_in, session_id) VALUES (?, ?, ?, ?)";
 
         int qryResult = jdbcTemplate.update(qryToAddEmail, user.getEmail(), user.getCode(), user.getIs_logged_in(), user.getSession_id());
 
@@ -48,13 +48,13 @@ public class AuthenticationDao {
     }
 
     public Boolean updateEmail(User user) {
-        String qryToUpdateEmail = "UPDATE user SET code=?, is_logged_in=?, session_id=?, created_time=CURRENT_TIMESTAMP WHERE email=?";
+        String qryToUpdateEmail = "UPDATE users SET code=?, is_logged_in=?, session_id=?, created_time=CURRENT_TIMESTAMP WHERE email=?";
         int qryResult = jdbcTemplate.update(qryToUpdateEmail, user.getCode(), user.getIs_logged_in(), user.getSession_id(), user.getEmail());
         return qryResult == 1;
     }
 
     public User getCode(User user) {
-        String qryToGetCode = "SELECT email, code, created_time, is_logged_in, session_id FROM user WHERE email=?";
+        String qryToGetCode = "SELECT email, code, created_time, is_logged_in, session_id FROM users WHERE email=?";
         try{
             User savedUser = jdbcTemplate.queryForObject(qryToGetCode, new Object[] {user.getEmail()}, new UserRowMapper());
             return savedUser;
@@ -64,13 +64,13 @@ public class AuthenticationDao {
     }
 
     public Boolean logoutDuplicateSession(User user) {
-        String qryToLogoutDuplicateSession = "UPDATE user SET session_id=?, is_logged_in=0 WHERE email=?";
+        String qryToLogoutDuplicateSession = "UPDATE users SET session_id=?, is_logged_in=0 WHERE email=?";
         int qryResult = jdbcTemplate.update(qryToLogoutDuplicateSession, user.getSession_id(), user.getEmail());
         return qryResult==1;
     }
 
     public String authenticate(User user) {
-        String qryToAuthenticate = "SELECT email, code, is_logged_in, created_time, session_id FROM user WHERE email=?";
+        String qryToAuthenticate = "SELECT email, code, is_logged_in, created_time, session_id FROM users WHERE email=?";
         User savedUser = jdbcTemplate.queryForObject(qryToAuthenticate, new Object[] {user.getEmail()}, new UserRowMapper());
         try{
             return savedUser.getSession_id();
@@ -80,7 +80,7 @@ public class AuthenticationDao {
     }
 
     public Boolean logout(User user) {
-        String qryToLogout = "UPDATE user SET is_logged_in=0 WHERE email=?";
+        String qryToLogout = "UPDATE users SET is_logged_in=0 WHERE email=?";
         int qryResult = jdbcTemplate.update(qryToLogout, user.getEmail());
         return qryResult==1;
     }
