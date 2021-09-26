@@ -64,7 +64,7 @@ public class AuthenticationDao {
     }
 
     public Boolean logoutDuplicateSession(User user) {
-        String qryToLogoutDuplicateSession = "UPDATE users SET session_id=?, is_logged_in=0 WHERE email=?";
+        String qryToLogoutDuplicateSession = "UPDATE users SET session_id=?, is_logged_in=false WHERE email=?";
         int qryResult = jdbcTemplate.update(qryToLogoutDuplicateSession, user.getSession_id(), user.getEmail());
         return qryResult==1;
     }
@@ -80,7 +80,7 @@ public class AuthenticationDao {
     }
 
     public Boolean logout(User user) {
-        String qryToLogout = "UPDATE users SET is_logged_in=0 WHERE email=?";
+        String qryToLogout = "UPDATE users SET is_logged_in=false WHERE email=?";
         int qryResult = jdbcTemplate.update(qryToLogout, user.getEmail());
         return qryResult==1;
     }
