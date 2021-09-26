@@ -17,7 +17,7 @@ public class AuthenticationDao {
     private JdbcTemplate jdbcTemplate;
 
     public User getEmail(User user) {
-        String qryToCheckUser = "SELECT email, code, is_logged_in, created_time, session_id FROM user WHERE email=?";
+        String qryToCheckUser = "SELECT email, code, is_logged_in, created_time, session_id FROM users WHERE email=?";
         try {
             User savedUser = jdbcTemplate.queryForObject(qryToCheckUser, new Object[]{user.getEmail()}, new UserRowMapper());
             return savedUser;
